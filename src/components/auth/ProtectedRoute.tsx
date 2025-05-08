@@ -2,11 +2,15 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
+/**
+ * ProtectedRoute component ensures that only authenticated users can access the route.
+ * Shows a loading state while auth is loading, otherwise redirects or renders the route.
+ */
 const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth();
-  
-  // Show loading state if auth is still being checked
+
   if (loading) {
+    // Show a spinner/loading screen while checking authentication
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="flex flex-col items-center">
@@ -16,13 +20,13 @@ const ProtectedRoute: React.FC = () => {
       </div>
     );
   }
-  
-  // If user is not logged in, redirect to login page
+
   if (!user) {
+    // Not logged in, redirect to login page
     return <Navigate to="/login" replace />;
   }
-  
-  // If user is logged in, render the protected route
+
+  // Authenticated, render the child routes
   return <Outlet />;
 };
 

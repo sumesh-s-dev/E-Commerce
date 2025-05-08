@@ -1,14 +1,25 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Users, Settings, BarChart, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, BarChart, Users, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
+  const { user, logout } = useAuth();
   const location = useLocation();
-  const { logout, user } = useAuth();
-  
-  const isAdmin = user?.role === 'admin';
-  
+
+  // SAFELY handle undefined user or user.name
+  const userName = user && typeof user.name === "string" && user.name.length > 0 ? user.name : "Guest";
+  const userInitial = user && typeof user.name === "string" && user.name.length > 0
+    ? user.name.charAt(0).toUpperCase()
+    : "?";
+  const userEmail = user && typeof user.email === "string" ? user.email : "";
+
+  const isAdmin = user && user.role === 'admin';
+
   const navItems = [
     { 
       name: 'Dashboard', 
@@ -47,7 +58,7 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="bg-white border-r border-gray-200 w-64 h-screen fixed left-0 top-0 z-10 overflow-y-auto">
+    <aside className={`bg-white border-r border-gray-200 w-64 h-screen fixed left-0 top-0 z-10 overflow-y-auto ${isOpen ? '' : 'hidden md:block'}`}>
       <div className="px-6 py-6">
         <div className="flex items-center mb-8">
           <div className="bg-blue-600 text-white p-2 rounded-md">
@@ -55,7 +66,6 @@ const Sidebar: React.FC = () => {
           </div>
           <h1 className="ml-3 text-xl font-bold text-gray-900">StockMaster</h1>
         </div>
-        
         <nav className="space-y-1">
           {navItems.map((item) => (
             <Link
@@ -76,7 +86,6 @@ const Sidebar: React.FC = () => {
           ))}
         </nav>
       </div>
-      
       <div className="px-6 py-4 border-t border-gray-200 mt-auto">
         <button
           onClick={logout}
@@ -85,16 +94,15 @@ const Sidebar: React.FC = () => {
           <LogOut className="h-5 w-5 text-gray-500" />
           <span className="ml-3">Log out</span>
         </button>
-        
         <div className="flex items-center mt-4 pt-4 border-t border-gray-200">
           <div className="flex-shrink-0">
             <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
-              {user?.name.charAt(0).toUpperCase()}
+              {userInitial}
             </div>
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
+            <p className="text-xs text-gray-500 truncate">{userEmail}</p>
           </div>
         </div>
       </div>
