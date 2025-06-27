@@ -5,7 +5,7 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { fetchProducts, Product } from '../../api/products';
 import ProductForm from '../../components/products/ProductForm';
-import { createProduct } from '../../api/products';
+import { createProduct, updateProduct, deleteProduct } from '../../api/products';
 
 const ProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -15,6 +15,12 @@ const ProductsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -43,6 +49,36 @@ const ProductsPage: React.FC = () => {
       setCreateError('Failed to create product');
     } finally {
       setCreateLoading(false);
+    }
+  };
+
+  const handleEditProduct = async (values: Partial<Product>) => {
+    if (!editProduct) return;
+    setEditLoading(true);
+    setEditError(null);
+    try {
+      const updated = await updateProduct(editProduct._id!, values);
+      setProducts((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
+      setEditProduct(null);
+    } catch (err) {
+      setEditError('Failed to update product');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!deleteProductId) return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      await deleteProduct(deleteProductId);
+      setProducts((prev) => prev.filter((p) => p._id !== deleteProductId));
+      setDeleteProductId(null);
+    } catch (err) {
+      setDeleteError('Failed to delete product');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -114,8 +150,12 @@ const ProductsPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-2"><Edit className="inline h-4 w-4" /></button>
-                        <button className="text-red-600 hover:text-red-900"><Trash2 className="inline h-4 w-4" /></button>
+                        <button className="text-blue-600 hover:text-blue-900 mr-2" onClick={() => setEditProduct(product)}>
+                          <Edit className="inline h-4 w-4" />
+                        </button>
+                        <button className="text-red-600 hover:text-red-900" onClick={() => setDeleteProductId(product._id!)}>
+                          <Trash2 className="inline h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -138,6 +178,33 @@ const ProductsPage: React.FC = () => {
               loading={createLoading}
             />
             {createError && <div className="text-red-500 text-sm mt-2">{createError}</div>}
+          </div>
+        </div>
+      )}
+      {editProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Edit Product</h2>
+            <ProductForm
+              initialValues={editProduct}
+              onSubmit={handleEditProduct}
+              onCancel={() => setEditProduct(null)}
+              loading={editLoading}
+            />
+            {editError && <div className="text-red-500 text-sm mt-2">{editError}</div>}
+          </div>
+        </div>
+      )}
+      {deleteProductId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h2 className="text-lg font-bold mb-4">Delete Product</h2>
+            <p>Are you sure you want to delete this product? This action cannot be undone.</p>
+            {deleteError && <div className="text-red-500 text-sm mt-2">{deleteError}</div>}
+            <div className="flex justify-end space-x-2 mt-6">
+              <Button variant="outline" onClick={() => setDeleteProductId(null)} disabled={deleteLoading}>Cancel</Button>
+              <Button variant="destructive" onClick={handleDeleteProduct} loading={deleteLoading}>Delete</Button>
+            </div>
           </div>
         </div>
       )}
