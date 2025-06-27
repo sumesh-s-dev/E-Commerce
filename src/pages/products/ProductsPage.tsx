@@ -7,6 +7,9 @@ import { fetchProducts, Product } from '../../api/products';
 import ProductForm from '../../components/products/ProductForm';
 import { createProduct, updateProduct, deleteProduct } from '../../api/products';
 
+const categoryOptions = ['All', 'Electronics', 'Accessories', 'Storage', 'Photography'];
+const statusOptions = ['All', 'Active', 'Inactive', 'Out of Stock'];
+
 const ProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,14 +24,23 @@ const ProductsPage: React.FC = () => {
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
 
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchProducts(searchQuery ? { search: searchQuery } : undefined);
+        const params: any = { page };
+        if (searchQuery) params.search = searchQuery;
+        if (selectedCategory !== 'All') params.category = selectedCategory;
+        if (selectedStatus !== 'All') params.status = selectedStatus;
+        const data = await fetchProducts(params);
         setProducts(data.products);
+        setTotalPages(data.pagination.pages);
       } catch (err) {
         setError('Failed to load products');
       } finally {
@@ -36,7 +48,7 @@ const ProductsPage: React.FC = () => {
       }
     };
     loadProducts();
-  }, [searchQuery]);
+  }, [searchQuery, page, selectedCategory, selectedStatus]);
 
   const handleCreateProduct = async (values: Partial<Product>) => {
     setCreateLoading(true);
@@ -103,9 +115,29 @@ const ProductsPage: React.FC = () => {
               <Input
                 placeholder="Search products..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                 leftIcon={<Search className="h-4 w-4 text-gray-400" />}
               />
+            </div>
+            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3">
+              <select
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                value={selectedCategory}
+                onChange={e => { setSelectedCategory(e.target.value); setPage(1); }}
+              >
+                {categoryOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <select
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                value={selectedStatus}
+                onChange={e => { setSelectedStatus(e.target.value); setPage(1); }}
+              >
+                {statusOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
           </div>
           {loading ? (
@@ -164,6 +196,29 @@ const ProductsPage: React.FC = () => {
               {products.length === 0 && (
                 <div className="text-center py-8 text-gray-500">No products found.</div>
               )}
+            </div>
+          )}
+          {products.length > 0 && (
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-gray-500">
+                Page {page} of {totalPages}
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1 || loading}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages || loading}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
