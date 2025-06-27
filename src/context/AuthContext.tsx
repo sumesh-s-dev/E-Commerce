@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       try {
         const res = await axios.get('/api/auth/user', { withCredentials: true });
         setUser(res.data);
-      } catch (err) {
+      } catch {
         // Not logged in or token expired
         setUser(null);
       } finally {
@@ -62,8 +62,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const res = await axios.post('/api/auth/login', { email, password }, { withCredentials: true });
       setUser(res.data.user);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || 'Login failed');
+      } else {
+        setError('Login failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -75,8 +79,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const res = await axios.post('/api/auth/register', { name, email, password }, { withCredentials: true });
       setUser(res.data.user);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || 'Registration failed');
+      } else {
+        setError('Registration failed');
+      }
     } finally {
       setLoading(false);
     }

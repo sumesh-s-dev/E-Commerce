@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Filter, ChevronDown, Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -81,19 +81,12 @@ const PRODUCTS = [
 
 const ProductsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('All');
-  
-  const categories = ['All', 'Electronics', 'Accessories', 'Storage', 'Photography'];
-  const statuses = ['All', 'Active', 'Inactive', 'Out of Stock'];
   
   const filteredProducts = PRODUCTS.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          product.sku.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    const matchesStatus = selectedStatus === 'All' || product.status === selectedStatus;
     
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch;
   });
   
   return (
@@ -124,31 +117,6 @@ const ProductsPage: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 leftIcon={<Search className="h-4 w-4 text-gray-400" />}
               />
-            </div>
-            
-            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3">
-              <div className="relative">
-                <button
-                  className="flex items-center justify-between w-full md:w-48 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50"
-                >
-                  <div className="flex items-center">
-                    <Filter className="h-4 w-4 text-gray-500 mr-2" />
-                    <span>{selectedCategory}</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
-                </button>
-                {/* Dropdown menu for categories would go here */}
-              </div>
-              
-              <div className="relative">
-                <button
-                  className="flex items-center justify-between w-full md:w-40 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50"
-                >
-                  <span>{selectedStatus}</span>
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
-                </button>
-                {/* Dropdown menu for statuses would go here */}
-              </div>
             </div>
           </div>
           
