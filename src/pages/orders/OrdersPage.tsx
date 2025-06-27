@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import { fetchOrders, Order, createOrder } from '../../api/orders';
+import { fetchOrders, Order, createOrder, fetchOrder, updateOrderStatus } from '../../api/orders';
 import OrderForm from '../../components/orders/OrderForm';
+import OrderDetails from '../../components/orders/OrderDetails';
 
 const statusOptions = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -16,6 +17,12 @@ const OrdersPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [viewOrderId, setViewOrderId] = useState<string | null>(null);
+  const [viewOrder, setViewOrder] = useState<Order | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState<string | null>(null);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -47,6 +54,35 @@ const OrdersPage: React.FC = () => {
       setCreateError('Failed to create order');
     } finally {
       setCreateLoading(false);
+    }
+  };
+
+  const handleViewOrder = async (id: string) => {
+    setViewOrderId(id);
+    setViewLoading(true);
+    setViewError(null);
+    try {
+      const order = await fetchOrder(id);
+      setViewOrder(order);
+    } catch (err) {
+      setViewError('Failed to load order details');
+    } finally {
+      setViewLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (status: string) => {
+    if (!viewOrder) return;
+    setStatusLoading(true);
+    setStatusError(null);
+    try {
+      const updated = await updateOrderStatus(viewOrder._id!, status);
+      setViewOrder(updated);
+      setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
+    } catch (err) {
+      setStatusError('Failed to update status');
+    } finally {
+      setStatusLoading(false);
     }
   };
 
@@ -116,7 +152,7 @@ const OrdersPage: React.FC = () => {
                         <div className="text-sm text-gray-500">{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : ''}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Button size="sm" variant="outline">View</Button>
+                        <Button size="sm" variant="outline" onClick={() => handleViewOrder(order._id!)}>View</Button>
                       </td>
                     </tr>
                   ))}
@@ -162,6 +198,27 @@ const OrdersPage: React.FC = () => {
               loading={createLoading}
             />
             {createError && <div className="text-red-500 text-sm mt-2">{createError}</div>}
+          </div>
+        </div>
+      )}
+      {viewOrderId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
+            {viewLoading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : viewError ? (
+              <div className="text-center text-red-500 py-8">{viewError}</div>
+            ) : viewOrder ? (
+              <>
+                <OrderDetails
+                  order={viewOrder}
+                  onClose={() => { setViewOrderId(null); setViewOrder(null); setStatusError(null); }}
+                  onStatusChange={handleStatusChange}
+                  statusLoading={statusLoading}
+                />
+                {statusError && <div className="text-red-500 text-sm mt-2">{statusError}</div>}
+              </>
+            ) : null}
           </div>
         </div>
       )}
