@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Package, Mail, Lock } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -9,11 +9,27 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login, loading, error, clearError } = useAuth();
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearError();
-    await login(email, password);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const redirect = new URLSearchParams(location.search).get('redirect');
+  const [info, setInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (redirect) {
+      setInfo('Please log in to continue.');
+    }
+  }, [redirect]);
+
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      await login(email, password);
+      navigate(redirect || '/dashboard');
+    } catch (err) {
+      setError('Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
   
   return (
@@ -42,6 +58,8 @@ const LoginPage: React.FC = () => {
               {error}
             </div>
           )}
+          
+          {info && <div className="text-blue-600 text-sm mb-2">{info}</div>}
           
           <form className="space-y-6" onSubmit={handleSubmit}>
             <Input

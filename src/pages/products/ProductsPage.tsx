@@ -7,7 +7,7 @@ import { fetchProducts, Product } from '../../api/products';
 import ProductForm from '../../components/products/ProductForm';
 import { createProduct, updateProduct, deleteProduct } from '../../api/products';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const categoryOptions = ['All', 'Electronics', 'Accessories', 'Storage', 'Photography'];
 const statusOptions = ['All', 'Active', 'Inactive', 'Out of Stock'];
@@ -32,6 +32,7 @@ const ProductsPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -100,7 +101,7 @@ const ProductsPage: React.FC = () => {
 
   const handleBuyNow = (product: Product) => {
     if (!user) {
-      navigate('/login');
+      navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
     } else {
       alert('Proceed to purchase!');
       // Here you would open the order modal or redirect to the order page

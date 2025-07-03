@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Package, User, Mail, Lock } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -12,7 +12,17 @@ const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const { register, loading, error, clearError } = useAuth();
-  
+  const location = useLocation();
+  const navigate = useNavigate();
+  const redirect = new URLSearchParams(location.search).get('redirect');
+  const [info, setInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (redirect) {
+      setInfo('Please sign up to continue.');
+    }
+  }, [redirect]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
@@ -23,7 +33,19 @@ const RegisterPage: React.FC = () => {
     }
     
     setPasswordError('');
-    await register(name, email, password);
+    await handleRegister(name, email, password);
+  };
+  
+  const handleRegister = async (name: string, email: string, password: string) => {
+    try {
+      setLoading(true);
+      await register(name, email, password);
+      navigate(redirect || '/dashboard');
+    } catch (err) {
+      setError('Registration failed');
+    } finally {
+      setLoading(false);
+    }
   };
   
   return (
@@ -52,6 +74,8 @@ const RegisterPage: React.FC = () => {
               {error}
             </div>
           )}
+          
+          {info && <div className="text-blue-600 text-sm mb-2">{info}</div>}
           
           <form className="space-y-6" onSubmit={handleSubmit}>
             <Input
