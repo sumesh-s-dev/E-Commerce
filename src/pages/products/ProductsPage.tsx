@@ -6,6 +6,8 @@ import Input from '../../components/ui/Input';
 import { fetchProducts, Product } from '../../api/products';
 import ProductForm from '../../components/products/ProductForm';
 import { createProduct, updateProduct, deleteProduct } from '../../api/products';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const categoryOptions = ['All', 'Electronics', 'Accessories', 'Storage', 'Photography'];
 const statusOptions = ['All', 'Active', 'Inactive', 'Out of Stock'];
@@ -28,6 +30,8 @@ const ProductsPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -91,6 +95,15 @@ const ProductsPage: React.FC = () => {
       setDeleteError('Failed to delete product');
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleBuyNow = (product: Product) => {
+    if (!user) {
+      navigate('/login');
+    } else {
+      alert('Proceed to purchase!');
+      // Here you would open the order modal or redirect to the order page
     }
   };
 
@@ -188,6 +201,9 @@ const ProductsPage: React.FC = () => {
                         <button className="text-red-600 hover:text-red-900" onClick={() => setDeleteProductId(product._id!)}>
                           <Trash2 className="inline h-4 w-4" />
                         </button>
+                        <Button size="sm" className="ml-2" onClick={() => handleBuyNow(product)}>
+                          Buy Now
+                        </Button>
                       </td>
                     </tr>
                   ))}

@@ -16,12 +16,12 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/products" element={<ProductsPage />} />
           
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/products" element={<ProductsPage />} />
               <Route path="/orders" element={<div className="p-4">Orders Page</div>} />
               <Route path="/reports" element={<div className="p-4">Reports Page</div>} />
               <Route path="/users" element={<div className="p-4">Users Page</div>} />
@@ -29,10 +29,10 @@ function App() {
             </Route>
           </Route>
           
-          {/* Redirect root to dashboard or login */}
+          {/* Redirect root to products */}
           <Route 
             path="/" 
-            element={<Navigate to="/dashboard" replace />} 
+            element={<Navigate to="/products" replace />} 
           />
           
           {/* Catch all for non-existent routes */}
